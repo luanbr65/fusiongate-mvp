@@ -1,0 +1,133 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 32px;
+  background: var(--fg-surface);
+  border-bottom: 1px solid var(--fg-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.crumb {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-accent-dark);
+}
+
+.pageTitle {
+  font-size: 1.4rem;
+  color: var(--fg-text);
+  margin-top: 2px;
+}
+
+.count {
+  font-size: 0.85rem;
+  color: var(--fg-gray-500);
+}
+
+.body {
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--fg-surface);
+  border: 1px solid var(--fg-gray-300);
+  color: var(--fg-gray-400);
+  flex: 1;
+  min-width: 220px;
+}
+
+.search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: var(--fg-text);
+  width: 100%;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 9px 15px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--fg-text-muted);
+  background: var(--fg-surface);
+  border: 1px solid var(--fg-gray-300);
+  transition: all var(--fg-transition);
+}
+
+.chip:hover {
+  border-color: var(--fg-accent);
+  color: var(--fg-text);
+}
+
+.chipActive {
+  color: var(--fg-white);
+  background: linear-gradient(135deg, var(--fg-indigo) 0%, var(--fg-accent-dark) 100%);
+  border-color: transparent;
+}
+
+.select {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--fg-gray-300);
+  background: var(--fg-surface);
+  font-size: 0.9rem;
+  color: var(--fg-text);
+  cursor: pointer;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--fg-accent);
+  box-shadow: 0 0 0 3px var(--fg-accent-soft);
+}
+
+.empty {
+  padding: 60px 24px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--fg-gray-500);
+  border-radius: var(--fg-radius-md);
+  border: 1px dashed var(--fg-gray-300);
+  background: var(--fg-surface);
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 18px 20px;
+  }
+  .body {
+    padding: 20px 20px 40px;
+  }
+  .search {
+    min-width: 100%;
+  }
+}
