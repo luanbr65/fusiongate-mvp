@@ -75,6 +75,16 @@ body {
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
+/* Âncoras não ficam escondidas atrás do header fixo */
+:target,
+[id] {
+  scroll-margin-top: 88px;
+}
+
 body {
   font-family: var(--fg-font);
   color: var(--fg-text);

@@ -5,9 +5,10 @@ import {
   Timer,
 } from "lucide-react";
 import Link from "next/link";
-import { generateTransactions, summarize } from "@/lib/mockData";
+import { generateTransactions, summarize, bucketByHour } from "@/lib/mockData";
 import StatCard from "@/components/app/StatCard/StatCard";
-import TransactionTable from "@/components/app/TransactionTable/TransactionTable";
+import RecentTransactions from "@/components/app/RecentTransactions/RecentTransactions";
+import DecisionsChart from "@/components/app/DecisionsChart/DecisionsChart";
 import LiveValidator from "@/components/app/LiveValidator/LiveValidator";
 import styles from "./dashboard.module.css";
 
@@ -18,6 +19,7 @@ function formatBRL(value) {
 export default function DashboardOverview() {
   const transactions = generateTransactions(28, 42);
   const s = summarize(transactions);
+  const buckets = bucketByHour(transactions, 12);
 
   const dist = [
     { key: "approve", label: "Aprovadas", value: s.approved, tone: "approve" },
@@ -70,6 +72,14 @@ export default function DashboardOverview() {
           />
         </section>
 
+        <section className={styles.card}>
+          <div className={styles.cardHead}>
+            <h2>Decisões por hora</h2>
+            <span className={styles.cardHint}>Últimas 12 horas</span>
+          </div>
+          <DecisionsChart buckets={buckets} />
+        </section>
+
         <div className={styles.grid}>
           <section className={styles.card}>
             <div className={styles.cardHead}>
@@ -115,7 +125,7 @@ export default function DashboardOverview() {
               Ver todas →
             </Link>
           </div>
-          <TransactionTable transactions={transactions.slice(0, 8)} />
+          <RecentTransactions transactions={transactions.slice(0, 8)} />
         </section>
       </div>
     </>

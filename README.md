@@ -1,121 +1,73 @@
-.section {
-  padding: 100px 0;
-  background: var(--fg-surface);
-}
+# FusionGate — MVP
 
-.inner {
-  width: 100%;
-  max-width: var(--fg-container);
-  margin: 0 auto;
-  padding: 0 24px;
-}
+Gateway de decisão antifraude em tempo real. **FusionGate** funde sinais de
+identidade, comportamento e análise de rede em uma única decisão — aprovar,
+revisar ou bloquear — em milissegundos.
 
-.head {
-  max-width: 680px;
-  margin: 0 auto 52px;
-  text-align: center;
-}
+Este repositório contém **a landing page + o MVP do produto** (dashboard e API
+de decisão).
 
-.eyebrow {
-  display: inline-block;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--fg-accent-dark);
-  margin-bottom: 14px;
-}
+## Stack
 
-.title {
-  font-size: clamp(1.7rem, 3.2vw, 2.4rem);
-  color: var(--fg-text);
-}
+- **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
+- **Estilização:** CSS Modules (`.module.css`) — sem Tailwind, tudo modular
+- **Ícones:** [Lucide React](https://lucide.dev/)
+- **Fonte:** Inter (via `next/font`)
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
+## O que tem aqui
 
-.card {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 30px 26px;
-  border-radius: var(--fg-radius-lg);
-  background: var(--fg-surface-alt);
-  border: 1px solid var(--fg-gray-200);
-  box-shadow: var(--fg-shadow-sm);
-  transition: transform var(--fg-transition), box-shadow var(--fg-transition),
-    border-color var(--fg-transition);
-}
+### 1. Landing page (`/`)
+Marketing site do FusionGate: hero com card de "fusão de sinais", grid de
+recursos (identidade, comportamento, grafos, compliance), seção "como funciona"
+com terminal de exemplo, CTA final e footer.
 
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--fg-shadow-md);
-  border-color: rgba(6, 182, 212, 0.35);
-}
+### 2. Dashboard / App (`/dashboard`)
+O MVP do produto, com shell de aplicação (sidebar + topbar):
+- **Visão geral** — KPIs (transações, taxa de aprovação, fraudes bloqueadas,
+  fila de revisão), barra de distribuição de decisões, transações recentes e um
+  **simulador de decisão interativo**.
+- **Transações** (`/dashboard/transactions`) — lista completa com busca e
+  filtros por decisão e canal.
 
-.quoteIcon {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 11px;
-  margin-bottom: 18px;
-  color: var(--fg-accent-dark);
-  background: var(--fg-accent-soft);
-}
+### 3. API de decisão (`/api/validate-transaction`)
+Endpoint mock que recebe uma transação e devolve a decisão do motor:
 
-.quote {
-  margin: 0 0 22px;
-  font-size: 1rem;
-  line-height: 1.65;
-  color: var(--fg-text);
-}
+```bash
+curl -X POST http://localhost:3000/api/validate-transaction \
+  -H 'content-type: application/json' \
+  -d '{ "amount": 1499.9, "channel": "pix", "signals": { "graphRisk": 0.2 } }'
 
-.author {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: auto;
-}
+# → { "decision": "approve", "risk_score": 0.06, "reasons": [...], "latency_ms": 3 }
+```
 
-.avatar {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--fg-white);
-  background: linear-gradient(135deg, var(--fg-indigo) 0%, var(--fg-accent-dark) 100%);
-}
+O simulador do dashboard consome exatamente esse endpoint.
 
-.authorMeta {
-  display: flex;
-  flex-direction: column;
-}
+## Estrutura
 
-.authorMeta strong {
-  font-size: 0.92rem;
-  color: var(--fg-text);
-}
+```
+src/
+├─ app/
+│  ├─ layout.js · globals.css        # fonte + design tokens (índigo/ciano)
+│  ├─ page.js                        # landing
+│  ├─ api/validate-transaction/      # API mock de decisão
+│  └─ dashboard/                     # app: layout + visão geral + transações
+├─ components/
+│  ├─ landing/                       # Navbar, Hero, Features, HowItWorks, ...
+│  └─ app/                           # Sidebar, StatCard, RiskBadge, tabela, ...
+└─ lib/
+   ├─ scoring.js                     # motor de decisão (score ponderado)
+   └─ mockData.js                    # gerador determinístico de transações
+```
 
-.authorMeta span {
-  font-size: 0.82rem;
-  color: var(--fg-gray-500);
-}
+Cada componente tem seu próprio `.module.css` dedicado.
 
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: 1fr;
-    max-width: 520px;
-    margin: 0 auto;
-  }
-  .section {
-    padding: 76px 0;
-  }
-}
+## Rodando localmente
+
+```bash
+npm install
+npm run dev      # http://localhost:3000  → landing
+                 # http://localhost:3000/dashboard  → app
+npm run build    # build de produção
+```
+
+Layout responsivo (mobile-first) em toda a landing e no dashboard.

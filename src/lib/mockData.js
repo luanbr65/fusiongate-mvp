@@ -99,6 +99,36 @@ function clampSignal(n) {
   return Math.max(0, Math.min(1, Number(n.toFixed(2))));
 }
 
+/**
+ * Agrega decisões em janelas horárias para o gráfico de série temporal.
+ * @param {Array} txs
+ * @param {number} hours - número de janelas (mais recente por último)
+ */
+export function bucketByHour(txs, hours = 12) {
+  const now = Date.now();
+  const buckets = Array.from({ length: hours }, (_, i) => {
+    const hoursAgo = hours - 1 - i;
+    const d = new Date(now - hoursAgo * 3600000);
+    return {
+      label: d.toLocaleTimeString("pt-BR", { hour: "2-digit" }) + "h",
+      approve: 0,
+      review: 0,
+      block: 0,
+      total: 0,
+    };
+  });
+
+  for (const t of txs) {
+    const diffH = Math.floor((now - new Date(t.createdAt)) / 3600000);
+    const idx = hours - 1 - diffH;
+    if (idx >= 0 && idx < hours) {
+      buckets[idx][t.decision] += 1;
+      buckets[idx].total += 1;
+    }
+  }
+  return buckets;
+}
+
 /** Agrega KPIs a partir de uma lista de transações pontuadas. */
 export function summarize(txs) {
   const total = txs.length;
