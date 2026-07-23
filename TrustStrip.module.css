@@ -1,0 +1,272 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { Save, RotateCcw, Check } from "lucide-react";
+import RiskBadge from "@/components/app/RiskBadge/RiskBadge";
+import styles from "./RulesConfig.module.css";
+
+const SIGNALS = [
+  { key: "deviceReputation", label: "Reputação do dispositivo" },
+  { key: "behavioralAnomaly", label: "Anomalia comportamental" },
+  { key: "graphRisk", label: "Risco de rede (grafos)" },
+  { key: "identityMatch", label: "Divergência de identidade" },
+  { key: "velocity", label: "Velocidade de transações" },
+];
+
+const CHANNELS = [
+  { key: "pix", label: "PIX" },
+  { key: "card", label: "Cartão" },
+  { key: "onboarding", label: "Onboarding" },
+  { key: "ted", label: "TED" },
+];
+
+const DEFAULT_WEIGHTS = {
+  deviceReputation: 22,
+  behavioralAnomaly: 24,
+  graphRisk: 20,
+  identityMatch: 18,
+  velocity: 16,
+};
+
+// Amostra fixa para o preview ao vivo.
+const SAMPLE = {
+  deviceReputation: 0.35,
+  behavioralAnomaly: 0.55,
+  graphRisk: 0.48,
+  identityMatch: 0.3,
+  velocity: 0.62,
+};
+
+export default function RulesConfig() {
+  const [reviewFrom, setReviewFrom] = useState(0.4);
+  const [blockFrom, setBlockFrom] = useState(0.7);
+  const [weights, setWeights] = useState(DEFAULT_WEIGHTS);
+  const [channels, setChannels] = useState({
+    pix: true,
+    card: true,
+    onboarding: true,
+    ted: true,
+  });
+  const [saved, setSaved] = useState(false);
+
+  const weightSum = Object.values(weights).reduce((a, b) => a + b, 0);
+
+  const previewScore = useMemo(() => {
+    let s = 0;
+    for (const { key } of SIGNALS) {
+      s += (SAMPLE[key] ?? 0) * ((weights[key] ?? 0) / (weightSum || 1));
+    }
+    return Number(s.toFixed(3));
+  }, [weights, weightSum]);
+
+  const previewDecision =
+    previewScore >= blockFrom
+      ? "block"
+      : previewScore >= reviewFrom
+      ? "review"
+      : "approve";
+
+  function updateWeight(key, value) {
+    setWeights((w) => ({ ...w, [key]: Number(value) }));
+    setSaved(false);
+  }
+
+  function setThreshold(setter, value) {
+    setter(Number(value));
+    setSaved(false);
+  }
+
+  function reset() {
+    setReviewFrom(0.4);
+    setBlockFrom(0.7);
+    setWeights(DEFAULT_WEIGHTS);
+    setChannels({ pix: true, card: true, onboarding: true, ted: true });
+    setSaved(false);
+  }
+
+  return (
+    <>
+      <header className={styles.topbar}>
+        <div>
+          <span className={styles.crumb}>Dashboard</span>
+          <h1 className={styles.pageTitle}>Regras de decisão</h1>
+        </div>
+        <div className={styles.topActions}>
+          <button className={styles.btnReset} onClick={reset}>
+            <RotateCcw size={15} strokeWidth={2.3} />
+            Restaurar padrão
+          </button>
+          <button
+            className={styles.btnSave}
+            onClick={() => setSaved(true)}
+            data-saved={saved}
+          >
+            {saved ? (
+              <>
+                <Check size={16} strokeWidth={2.6} /> Salvo
+              </>
+            ) : (
+              <>
+                <Save size={16} strokeWidth={2.3} /> Salvar regras
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      <div className={styles.body}>
+        <div className={styles.grid}>
+          <div className={styles.colMain}>
+            <section className={styles.card}>
+              <h2 className={styles.cardTitle}>Limiares de decisão</h2>
+              <p className={styles.cardSub}>
+                Defina as faixas de risk score que separam aprovar, revisar e
+                bloquear.
+              </p>
+
+              <div className={styles.bandPreview}>
+                <span
+                  className={styles.bandApprove}
+                  style={{ flex: reviewFrom }}
+                >
+                  Aprovar
+                </span>
+                <span
+                  className={styles.bandReview}
+                  style={{ flex: blockFrom - reviewFrom }}
+                >
+                  Revisar
+                </span>
+                <span
+                  className={styles.bandBlock}
+                  style={{ flex: 1 - blockFrom }}
+                >
+                  Bloquear
+                </span>
+              </div>
+
+              <div className={styles.thresholds}>
+                <label className={styles.threshold}>
+                  <span className={styles.thHead}>
+                    Revisar a partir de
+                    <strong>{reviewFrom.toFixed(2)}</strong>
+                  </span>
+                  <input
+                    type="range"
+                    min="0.1"
+                    max={(blockFrom - 0.05).toFixed(2)}
+                    step="0.01"
+                    value={reviewFrom}
+                    onChange={(e) => setThreshold(setReviewFrom, e.target.value)}
+                    className={styles.range}
+                  />
+                </label>
+                <label className={styles.threshold}>
+                  <span className={styles.thHead}>
+                    Bloquear a partir de
+                    <strong>{blockFrom.toFixed(2)}</strong>
+                  </span>
+                  <input
+                    type="range"
+                    min={(reviewFrom + 0.05).toFixed(2)}
+                    max="0.95"
+                    step="0.01"
+                    value={blockFrom}
+                    onChange={(e) => setThreshold(setBlockFrom, e.target.value)}
+                    className={styles.range}
+                  />
+                </label>
+              </div>
+            </section>
+
+            <section className={styles.card}>
+              <div className={styles.cardTitleRow}>
+                <h2 className={styles.cardTitle}>Pesos dos sinais</h2>
+                <span
+                  className={styles.sumBadge}
+                  data-warn={weightSum !== 100}
+                >
+                  Soma: {weightSum}%
+                </span>
+              </div>
+              <p className={styles.cardSub}>
+                Ajuste a influência de cada sinal no score final. Os pesos são
+                normalizados automaticamente.
+              </p>
+
+              <div className={styles.weights}>
+                {SIGNALS.map(({ key, label }) => (
+                  <label key={key} className={styles.weight}>
+                    <span className={styles.wHead}>
+                      {label}
+                      <strong>{weights[key]}%</strong>
+                    </span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="40"
+                      step="1"
+                      value={weights[key]}
+                      onChange={(e) => updateWeight(key, e.target.value)}
+                      className={styles.range}
+                    />
+                  </label>
+                ))}
+              </div>
+            </section>
+
+            <section className={styles.card}>
+              <h2 className={styles.cardTitle}>Canais monitorados</h2>
+              <p className={styles.cardSub}>
+                Ative ou desative a análise por canal de transação.
+              </p>
+              <div className={styles.channels}>
+                {CHANNELS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    className={`${styles.channel} ${
+                      channels[key] ? styles.channelOn : ""
+                    }`}
+                    onClick={() => {
+                      setChannels((c) => ({ ...c, [key]: !c[key] }));
+                      setSaved(false);
+                    }}
+                    role="switch"
+                    aria-checked={channels[key]}
+                  >
+                    <span className={styles.switch} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <aside className={styles.colSide}>
+            <div className={styles.previewCard}>
+              <h3 className={styles.previewTitle}>Preview da decisão</h3>
+              <p className={styles.previewSub}>
+                Como uma transação de exemplo seria decidida com as regras
+                atuais.
+              </p>
+              <div className={styles.previewScore} data-tone={previewDecision}>
+                {previewScore.toFixed(2)}
+              </div>
+              <div className={styles.previewBadge}>
+                <RiskBadge decision={previewDecision} />
+              </div>
+              <ul className={styles.previewSignals}>
+                {SIGNALS.map(({ key, label }) => (
+                  <li key={key}>
+                    <span>{label}</span>
+                    <strong>{SAMPLE[key].toFixed(2)}</strong>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </>
+  );
+}

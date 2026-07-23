@@ -1,17 +1,95 @@
-{
-  "name": "fusiongate-mvp",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "lucide-react": "^0.427.0",
-    "next": "14.2.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
-  }
+import Link from "next/link";
+import { ArrowRight, ShieldCheck, Check } from "lucide-react";
+import styles from "./Hero.module.css";
+
+const signals = [
+  { label: "Identidade", value: 94 },
+  { label: "Comportamento", value: 88 },
+  { label: "Rede / grafos", value: 91 },
+];
+
+export default function Hero() {
+  return (
+    <section className={styles.hero}>
+      <div className={styles.inner}>
+        <div className={styles.content}>
+          <span className={styles.tag}>Gateway de decisão antifraude</span>
+
+          <h1 className={styles.title}>
+            Uma decisão de fraude.
+            <br />
+            Todos os sinais, num só lugar.
+          </h1>
+
+          <p className={styles.subtitle}>
+            O FusionGate reúne identidade, comportamento e análise de rede e
+            devolve uma decisão — aprovar, revisar ou bloquear — em menos de
+            200ms. Menos atrito pro cliente certo, porta fechada pro fraudador.
+          </p>
+
+          <div className={styles.actions}>
+            <Link href="/dashboard" className={styles.btnPrimary}>
+              Abrir o Dashboard
+              <ArrowRight size={18} strokeWidth={2.4} />
+            </Link>
+            <a href="#how" className={styles.btnSecondary}>
+              Como funciona
+            </a>
+          </div>
+
+          <div className={styles.stats}>
+            <div className={styles.stat}>
+              <strong>&lt;200ms</strong>
+              <span>Latência de decisão</span>
+            </div>
+            <div className={styles.stat}>
+              <strong>+30%</strong>
+              <span>Aprovação de legítimos</span>
+            </div>
+            <div className={styles.stat}>
+              <strong>-85%</strong>
+              <span>Perdas por fraude</span>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.visual}>
+          <div className={styles.card}>
+            <div className={styles.cardTop}>
+              <span className={styles.cardLabel}>Fusão de sinais</span>
+              <span className={styles.cardLive}>ao vivo</span>
+            </div>
+
+            <ul className={styles.signals}>
+              {signals.map((s) => (
+                <li key={s.label}>
+                  <span className={styles.sigLabel}>{s.label}</span>
+                  <span className={styles.sigTrack}>
+                    <span
+                      className={styles.sigFill}
+                      style={{ width: `${s.value}%` }}
+                    />
+                  </span>
+                  <span className={styles.sigVal}>{s.value}</span>
+                </li>
+              ))}
+            </ul>
+
+            <div className={styles.decision}>
+              <span className={styles.decisionIcon}>
+                <ShieldCheck size={18} strokeWidth={2.4} />
+              </span>
+              <div className={styles.decisionText}>
+                <strong>Aprovar</strong>
+                <span>risk score 0.06 · 138ms</span>
+              </div>
+              <span className={styles.decisionTag}>
+                <Check size={13} strokeWidth={3} />
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 }

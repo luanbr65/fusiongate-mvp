@@ -1,0 +1,126 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { ShieldAlert, AlertTriangle, Info, Check, BellOff } from "lucide-react";
+import styles from "./AlertsCenter.module.css";
+
+const SEVERITY = {
+  critical: { label: "Crítico", icon: ShieldAlert },
+  warning: { label: "Atenção", icon: AlertTriangle },
+  info: { label: "Informativo", icon: Info },
+};
+
+const FILTERS = [
+  { value: "all", label: "Todos" },
+  { value: "critical", label: "Críticos" },
+  { value: "warning", label: "Atenção" },
+  { value: "info", label: "Informativos" },
+];
+
+function timeAgo(iso) {
+  const mins = Math.floor((Date.now() - new Date(iso)) / 60000);
+  if (mins < 1) return "agora";
+  if (mins < 60) return `há ${mins} min`;
+  const h = Math.floor(mins / 60);
+  if (h < 24) return `há ${h} h`;
+  return `há ${Math.floor(h / 24)} d`;
+}
+
+export default function AlertsCenter({ alerts }) {
+  const [filter, setFilter] = useState("all");
+  const [read, setRead] = useState({});
+
+  const unread = alerts.filter((a) => !read[a.id]).length;
+
+  const visible = useMemo(
+    () => (filter === "all" ? alerts : alerts.filter((a) => a.severity === filter)),
+    [alerts, filter]
+  );
+
+  function markAll() {
+    const all = {};
+    alerts.forEach((a) => (all[a.id] = true));
+    setRead(all);
+  }
+
+  return (
+    <>
+      <header className={styles.topbar}>
+        <div>
+          <span className={styles.crumb}>Dashboard</span>
+          <h1 className={styles.pageTitle}>
+            Central de alertas
+            {unread > 0 && <span className={styles.badge}>{unread}</span>}
+          </h1>
+        </div>
+        <button
+          className={styles.markAll}
+          onClick={markAll}
+          disabled={unread === 0}
+        >
+          <Check size={15} strokeWidth={2.4} />
+          Marcar tudo como lido
+        </button>
+      </header>
+
+      <div className={styles.body}>
+        <div className={styles.filters}>
+          {FILTERS.map((f) => (
+            <button
+              key={f.value}
+              className={`${styles.chip} ${filter === f.value ? styles.chipActive : ""}`}
+              onClick={() => setFilter(f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {visible.length === 0 ? (
+          <div className={styles.empty}>
+            <BellOff size={30} strokeWidth={2} />
+            <p>Nenhum alerta neste filtro.</p>
+          </div>
+        ) : (
+          <ul className={styles.list}>
+            {visible.map((a) => {
+              const meta = SEVERITY[a.severity];
+              const Icon = meta.icon;
+              const isRead = !!read[a.id];
+              return (
+                <li
+                  key={a.id}
+                  className={`${styles.alert} ${styles[a.severity]} ${
+                    isRead ? styles.read : ""
+                  }`}
+                >
+                  <span className={styles.icon}>
+                    <Icon size={18} strokeWidth={2.2} />
+                  </span>
+                  <div className={styles.content}>
+                    <div className={styles.alertHead}>
+                      <span className={styles.title}>{a.title}</span>
+                      <span className={styles.sev}>{meta.label}</span>
+                    </div>
+                    <span className={styles.desc}>{a.description}</span>
+                  </div>
+                  <div className={styles.side}>
+                    <span className={styles.time}>{timeAgo(a.time)}</span>
+                    {!isRead && (
+                      <button
+                        className={styles.markOne}
+                        onClick={() => setRead((r) => ({ ...r, [a.id]: true }))}
+                      >
+                        Marcar lido
+                      </button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+    </>
+  );
+}

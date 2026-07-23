@@ -1,73 +1,113 @@
-# FusionGate — MVP
+.section {
+  padding: 96px 0;
+  background: var(--fg-surface);
+}
 
-Gateway de decisão antifraude em tempo real. **FusionGate** funde sinais de
-identidade, comportamento e análise de rede em uma única decisão — aprovar,
-revisar ou bloquear — em milissegundos.
+.inner {
+  width: 100%;
+  max-width: var(--fg-container);
+  margin: 0 auto;
+  padding: 0 24px;
+}
 
-Este repositório contém **a landing page + o MVP do produto** (dashboard e API
-de decisão).
+.head {
+  max-width: 640px;
+  margin: 0 0 48px;
+}
 
-## Stack
+.eyebrow {
+  display: inline-block;
+  font-family: var(--fg-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--fg-brand);
+  margin-bottom: 14px;
+}
 
-- **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
-- **Estilização:** CSS Modules (`.module.css`) — sem Tailwind, tudo modular
-- **Ícones:** [Lucide React](https://lucide.dev/)
-- **Fonte:** Inter (via `next/font`)
+.title {
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+  color: var(--fg-ink);
+}
 
-## O que tem aqui
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
 
-### 1. Landing page (`/`)
-Marketing site do FusionGate: hero com card de "fusão de sinais", grid de
-recursos (identidade, comportamento, grafos, compliance), seção "como funciona"
-com terminal de exemplo, CTA final e footer.
+.card {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 26px;
+  border-radius: var(--fg-radius-lg);
+  background: var(--fg-surface);
+  border: 1px solid var(--fg-gray-200);
+  transition: border-color var(--fg-transition);
+}
 
-### 2. Dashboard / App (`/dashboard`)
-O MVP do produto, com shell de aplicação (sidebar + topbar):
-- **Visão geral** — KPIs (transações, taxa de aprovação, fraudes bloqueadas,
-  fila de revisão), barra de distribuição de decisões, transações recentes e um
-  **simulador de decisão interativo**.
-- **Transações** (`/dashboard/transactions`) — lista completa com busca e
-  filtros por decisão e canal.
+.card:hover {
+  border-color: var(--fg-gray-400);
+}
 
-### 3. API de decisão (`/api/validate-transaction`)
-Endpoint mock que recebe uma transação e devolve a decisão do motor:
+.quoteIcon {
+  display: inline-flex;
+  color: var(--fg-brand);
+  margin-bottom: 16px;
+}
 
-```bash
-curl -X POST http://localhost:3000/api/validate-transaction \
-  -H 'content-type: application/json' \
-  -d '{ "amount": 1499.9, "channel": "pix", "signals": { "graphRisk": 0.2 } }'
+.quote {
+  margin: 0 0 22px;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--fg-ink);
+}
 
-# → { "decision": "approve", "risk_score": 0.06, "reasons": [...], "latency_ms": 3 }
-```
+.author {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid var(--fg-gray-200);
+}
 
-O simulador do dashboard consome exatamente esse endpoint.
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-family: var(--fg-display);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--fg-white);
+  background: var(--fg-ink);
+}
 
-## Estrutura
+.authorMeta {
+  display: flex;
+  flex-direction: column;
+}
 
-```
-src/
-├─ app/
-│  ├─ layout.js · globals.css        # fonte + design tokens (índigo/ciano)
-│  ├─ page.js                        # landing
-│  ├─ api/validate-transaction/      # API mock de decisão
-│  └─ dashboard/                     # app: layout + visão geral + transações
-├─ components/
-│  ├─ landing/                       # Navbar, Hero, Features, HowItWorks, ...
-│  └─ app/                           # Sidebar, StatCard, RiskBadge, tabela, ...
-└─ lib/
-   ├─ scoring.js                     # motor de decisão (score ponderado)
-   └─ mockData.js                    # gerador determinístico de transações
-```
+.authorMeta strong {
+  font-family: var(--fg-display);
+  font-size: 0.92rem;
+  color: var(--fg-ink);
+}
 
-Cada componente tem seu próprio `.module.css` dedicado.
+.authorMeta span {
+  font-size: 0.82rem;
+  color: var(--fg-gray-500);
+}
 
-## Rodando localmente
-
-```bash
-npm install
-npm run dev      # http://localhost:3000  → landing
-                 # http://localhost:3000/dashboard  → app
-npm run build    # build de produção
-```
-
-Layout responsivo (mobile-first) em toda a landing e no dashboard.
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+  .section {
+    padding: 72px 0;
+  }
+}

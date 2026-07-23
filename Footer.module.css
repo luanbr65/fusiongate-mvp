@@ -1,0 +1,158 @@
+"use client";
+
+import { useState } from "react";
+import {
+  Check,
+  ShieldX,
+  Eye,
+  ClipboardCheck,
+  CheckCircle2,
+} from "lucide-react";
+import TransactionDetailDrawer from "@/components/app/TransactionDetailDrawer/TransactionDetailDrawer";
+import styles from "./ReviewQueue.module.css";
+
+const CHANNEL_LABEL = {
+  pix: "PIX",
+  card: "Cartão",
+  onboarding: "Onboarding",
+  ted: "TED",
+};
+
+const TOP_SIGNALS = {
+  deviceReputation: "Dispositivo",
+  behavioralAnomaly: "Comportamento",
+  graphRisk: "Rede/grafos",
+  identityMatch: "Identidade",
+  velocity: "Velocidade",
+};
+
+function formatBRL(v) {
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function topSignal(tx) {
+  let best = null;
+  for (const [k, v] of Object.entries(tx.signals)) {
+    if (!best || v > best.v) best = { k, v };
+  }
+  return best ? `${TOP_SIGNALS[best.k]} ${best.v.toFixed(2)}` : "—";
+}
+
+export default function ReviewQueue({ cases }) {
+  const [queue, setQueue] = useState(cases);
+  const [resolved, setResolved] = useState({ approve: 0, block: 0 });
+  const [selected, setSelected] = useState(null);
+
+  function resolve(id, action) {
+    setQueue((q) => q.filter((c) => c.id !== id));
+    setResolved((r) => ({ ...r, [action]: r[action] + 1 }));
+  }
+
+  const total = cases.length;
+  const done = resolved.approve + resolved.block;
+
+  return (
+    <>
+      <header className={styles.topbar}>
+        <div>
+          <span className={styles.crumb}>Dashboard</span>
+          <h1 className={styles.pageTitle}>Fila de revisão</h1>
+        </div>
+        <div className={styles.counters}>
+          <span className={styles.counter}>
+            <strong>{queue.length}</strong> pendentes
+          </span>
+          <span className={`${styles.counter} ${styles.approved}`}>
+            <Check size={14} strokeWidth={2.6} />
+            {resolved.approve}
+          </span>
+          <span className={`${styles.counter} ${styles.blocked}`}>
+            <ShieldX size={14} strokeWidth={2.6} />
+            {resolved.block}
+          </span>
+        </div>
+      </header>
+
+      <div className={styles.body}>
+        {total > 0 && (
+          <div className={styles.progressWrap}>
+            <div className={styles.progressBar}>
+              <span
+                className={styles.progressFill}
+                style={{ width: `${(done / total) * 100}%` }}
+              />
+            </div>
+            <span className={styles.progressText}>
+              {done} de {total} casos resolvidos
+            </span>
+          </div>
+        )}
+
+        {queue.length === 0 ? (
+          <div className={styles.empty}>
+            <span className={styles.emptyIcon}>
+              <CheckCircle2 size={34} strokeWidth={2} />
+            </span>
+            <h2>Fila zerada!</h2>
+            <p>
+              Todos os casos em revisão foram resolvidos. Novos casos aparecem
+              aqui automaticamente quando o motor os marca para análise.
+            </p>
+          </div>
+        ) : (
+          <ul className={styles.list}>
+            {queue.map((c) => (
+              <li key={c.id} className={styles.case}>
+                <div className={styles.caseMain}>
+                  <div className={styles.caseHead}>
+                    <span className={styles.caseId}>{c.id}</span>
+                    <span className={styles.caseScore}>
+                      score {c.riskScore.toFixed(2)}
+                    </span>
+                  </div>
+                  <span className={styles.caseCustomer}>{c.customer}</span>
+                  <div className={styles.caseMeta}>
+                    <span className={styles.tag}>{CHANNEL_LABEL[c.channel]}</span>
+                    <span>{formatBRL(c.amount)}</span>
+                    <span className={styles.dot}>·</span>
+                    <span className={styles.topSignal}>{topSignal(c)}</span>
+                  </div>
+                </div>
+
+                <div className={styles.caseActions}>
+                  <button
+                    className={styles.btnView}
+                    onClick={() => setSelected(c)}
+                    aria-label="Ver detalhes"
+                  >
+                    <Eye size={16} strokeWidth={2.2} />
+                    Detalhes
+                  </button>
+                  <button
+                    className={styles.btnBlock}
+                    onClick={() => resolve(c.id, "block")}
+                  >
+                    <ShieldX size={16} strokeWidth={2.3} />
+                    Bloquear
+                  </button>
+                  <button
+                    className={styles.btnApprove}
+                    onClick={() => resolve(c.id, "approve")}
+                  >
+                    <Check size={16} strokeWidth={2.6} />
+                    Aprovar
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <TransactionDetailDrawer
+        transaction={selected}
+        onClose={() => setSelected(null)}
+      />
+    </>
+  );
+}
